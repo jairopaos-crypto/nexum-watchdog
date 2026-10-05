@@ -33,6 +33,14 @@ describe('watchdog · criterio de salud', () => {
     expect(judgeNovaReadyz(200, { ready: false, llm: true, channels: true }).ok).toBe(false);
     expect(judgeNovaReadyz(502, '<html>').ok).toBe(false);
   });
+  it('nova-web: la llave puesta pero el modelo sin contestar (llm_live=false) es caída; sin el campo, no', () => {
+    const dead = judgeNovaReadyz(200, { ready: true, llm: true, llm_live: false, channels: true });
+    expect(dead.ok).toBe(false);
+    expect(dead.detail).toMatch(/llm_live/);
+    expect(judgeNovaReadyz(200, { ready: true, llm: true, llm_live: true, channels: true }).ok).toBe(true);
+    expect(judgeNovaReadyz(200, { ready: true, llm: true, llm_live: null, channels: true }).ok).toBe(true);
+    expect(judgeNovaReadyz(200, { ready: true, llm: true, channels: true }).ok).toBe(true);
+  });
 });
 
 describe('watchdog · cuándo avisar', () => {

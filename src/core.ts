@@ -50,6 +50,9 @@ export function judgeNovaReadyz(status: number, body: unknown): CheckResult {
   if (!isObj(body)) return { name, ok: false, detail: 'respuesta ilegible' };
   const missing = (['ready', 'llm', 'channels'] as const).filter((k) => body[k] !== true);
   if (missing.length) return { name, ok: false, detail: `falla: ${missing.join(', ')}` };
+  // `llm: true` only says a key is configured. NOVA now probes the model for real (llm_live); an older NOVA
+  // that does not report it is judged by `llm` alone, but an explicit false means "the key is set and the model does not answer".
+  if (body.llm_live === false) return { name, ok: false, detail: 'falla: llm_live (el modelo no contesta)' };
   return { name, ok: true, detail: 'ok' };
 }
 
