@@ -1,0 +1,20 @@
+{
+  "name": "nexum-watchdog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vigilante externo de NOVA: avisa por WhatsApp si NOVA o el gateway dejan de responder.",
+  "engines": { "node": ">=20.11" },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "watch": "tsx src/run.ts",
+    "watch:dry": "WATCHDOG_DRY_RUN=1 tsx src/run.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

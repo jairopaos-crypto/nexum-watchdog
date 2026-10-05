@@ -1,0 +1,49 @@
+name: watchdog
+
+# Corre FUERA de Render a propósito: si Render se cae, este vigilante sigue vivo y avisa.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      simulate:
+        description: 'Probar el aviso: finge caído este componente (nova-web o channels-api). Vacío = vigilancia normal.'
+        required: false
+        default: ''
+
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # El estado (¿ya avisé de esta caída?) vive en la caché de Actions entre ejecuciones.
+      - name: Restaurar estado
+        uses: actions/cache/restore@v4
+        with:
+          path: .watchdog-state.json
+          key: watchdog-state-sin-coincidencia-exacta
+          restore-keys: watchdog-state-
+      - name: Vigilar
+        env:
+          WATCHDOG_META_TOKEN: ${{ secrets.WATCHDOG_META_TOKEN }}
+          WATCHDOG_PHONE_NUMBER_ID: ${{ secrets.WATCHDOG_PHONE_NUMBER_ID }}
+          WATCHDOG_TO: ${{ secrets.WATCHDOG_TO }}
+          WATCHDOG_SIMULATE: ${{ inputs.simulate }}
+        run: npx --yes tsx@4.23.13 src/run.ts
+      - name: Guardar estado
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .watchdog-state.json
+          key: watchdog-state-${{ github.run_id }}-${{ github.run_attempt }}
